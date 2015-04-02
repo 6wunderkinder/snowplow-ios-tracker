@@ -27,6 +27,6 @@
 #ifdef SNOWPLOW_DEBUG
 #   define SnowplowDLog(...) NSLog(__VA_ARGS__)
 #else
-#    define SnowplowDLog(...)
+#    define SnowplowDLog(...) do { } while (0)
 #endif
 #define ALog(...) NSLog(__VA_ARGS__)
