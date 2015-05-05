@@ -77,10 +77,9 @@ static NSString * const _querySetNonPending     = @"UPDATE events SET pending=0 
 }
 
 - (long long int) insertEvent:(SnowplowPayload *)payload {
-    return [self insertDicitionaryData:[payload getPayloadAsDictionary]];
+    return [self insertDictionaryData:[payload getPayloadAsDictionary]];
 }
 
-- (long long int) insertDicitionaryData:(NSDictionary *)dict {
     if([_db open]) {
         NSData *data = [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
         [_db executeUpdate:_queryInsertEvent, data];
