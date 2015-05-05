@@ -119,7 +119,7 @@ static NSString * const _querySetNonPending     = @"UPDATE events SET pending=0 
 
 - (BOOL) removePendingWithId:(long long int)id_ {
     if ([_db open]) {
-        return [_db executeUpdate:_querySetPending, id_];
+        return [_db executeUpdate:_querySetNonPending, id_];
     } else {
         return false;
     }
