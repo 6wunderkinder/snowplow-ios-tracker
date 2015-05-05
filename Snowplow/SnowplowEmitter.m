@@ -24,7 +24,6 @@
 #import "SnowplowEmitter.h"
 #import "SnowplowEventStore.h"
 #import "SnowplowUtils.h"
-#import <FMDB.h>
 
 @implementation SnowplowEmitter {
     NSURL *                     _urlEndpoint;
@@ -33,7 +32,6 @@
     enum SnowplowBufferOptions  _bufferOption;
     NSTimer *                   _timer;
     SnowplowEventStore *        _db;
-    FMDatabaseQueue *           _dbQueue;
 }
 
 static int       const kDefaultBufferTimeout = 60;
@@ -84,10 +82,6 @@ static NSString *const kPayloadDataSchema    = @"iglu:com.snowplowanalytics.snow
         } else {
             _urlEndpoint = [url URLByAppendingPathComponent:@"/com.snowplowanalytics.snowplow/tp2"];
         }
-        
-        NSString *libraryPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-        NSString *dbPath = [libraryPath stringByAppendingPathComponent:@"snowplowEvents.sqlite"];
-        _dbQueue = [FMDatabaseQueue databaseQueueWithPath:dbPath];
         
         [self setBufferTime:kDefaultBufferTimeout];
     }
@@ -192,17 +186,14 @@ static NSString *const kPayloadDataSchema    = @"iglu:com.snowplowanalytics.snow
         else
         {
             SnowplowDLog(@"JSON: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-            
-            [_dbQueue inDatabase:^(FMDatabase *db) {
-                NSMutableArray *removedIDs = [NSMutableArray arrayWithArray:dbIndexArray];
-                for (int i=0; i < dbIndexArray.count; i++) {
-                    SnowplowDLog(@"Removing event at index: %@", dbIndexArray[i]);
-                    [_db removeEventWithId:[[dbIndexArray objectAtIndex:i] longLongValue]];
-                    [removedIDs addObject:dbIndexArray[i]];
-                }
-                [dbIndexArray removeObjectsInArray:removedIDs];
 
-            }];
+            NSMutableArray *removedIDs = [NSMutableArray arrayWithArray:dbIndexArray];
+            for (int i=0; i < dbIndexArray.count; i++) {
+                SnowplowDLog(@"Removing event at index: %@", dbIndexArray[i]);
+                [_db removeEventWithId:[[dbIndexArray objectAtIndex:i] longLongValue]];
+                [removedIDs addObject:dbIndexArray[i]];
+            }
+            [dbIndexArray removeObjectsInArray:removedIDs];
         }
     }];
     [dataTask resume];
@@ -227,15 +218,14 @@ static NSString *const kPayloadDataSchema    = @"iglu:com.snowplowanalytics.snow
         }
         else {
             SnowplowDLog(@"JSON: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-            [_dbQueue inDatabase:^(FMDatabase *db) {
-                NSMutableArray *removedIDs = [NSMutableArray arrayWithArray:dbIndexArray];
-                for (int i=0; i < dbIndexArray.count; i++) {
-                    SnowplowDLog(@"Removing event at index: %@", dbIndexArray[i]);
-                    [_db removeEventWithId:[[dbIndexArray objectAtIndex:i] longLongValue]];
-                    [removedIDs addObject:dbIndexArray[i]];
-                }
-                [dbIndexArray removeObjectsInArray:removedIDs];
-            }];
+
+            NSMutableArray *removedIDs = [NSMutableArray arrayWithArray:dbIndexArray];
+            for (int i=0; i < dbIndexArray.count; i++) {
+                SnowplowDLog(@"Removing event at index: %@", dbIndexArray[i]);
+                [_db removeEventWithId:[[dbIndexArray objectAtIndex:i] longLongValue]];
+                [removedIDs addObject:dbIndexArray[i]];
+            }
+            [dbIndexArray removeObjectsInArray:removedIDs];
         }
     }];
     [dataTask resume];
